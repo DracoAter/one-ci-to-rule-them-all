@@ -23,11 +23,11 @@ suites:
       - jenkins2::pipelines
       - jenkins2::security
     attributes:
-      plugins:
-        install:
-          - github
-          - timestamper
       jenkins2:
+        plugins:
+          install:
+            - github
+            - timestamper
         folders:
           dev:
             path: ''
@@ -39,7 +39,7 @@ suites:
             path: ''
         pipelines:
           one-ci-to-rule-them-all:
-            repository_url: 'git@github.com:DracoAter/one-ci-to-rule-them-all.git'
+            repository_url: 'https://github.com/DracoAter/one-ci-to-rule-them-all.git'
             multibranch: true
           dev-global:
             repository_url: 'test'

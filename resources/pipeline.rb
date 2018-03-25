@@ -9,6 +9,7 @@ property :repository_url, String, required: true
 property :script, String, default: 'Jenkinsfile', required: true
 property :credentials_id, String
 property :multibranch, [true, false], default: false
+
 property :path, String, desired_state: false, default: ''
 property :connection, Hash, desired_state: false,
 	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
@@ -90,7 +91,7 @@ action :update do
 				Chef::Log.info "#{new_resource}: Updating pipeline."
 				new_resource.path.split('/').inject(jc) do |acc, elem|
 					acc.job(elem)
-				end.job(new_resource.name).update(format(template, new_resource.to_hash))
+				end.job(new_resource.name).update(format(new_resource.template, new_resource.to_hash))
 			end
 		end
 	else

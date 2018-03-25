@@ -1,39 +1,44 @@
 // vim: set filetype=groovy:
 
 pipeline {
-  options{
-    timestamps()
-    buildDiscarder(logRotator(numToKeepStr: '10'))
+	parameters {
+	}
+	options{
+		timestamps()
+		buildDiscarder(logRotator(numToKeepStr: '10'))
+	}
+	triggers {
+		githubPush()
+	}
+	agent any
+		stages {
+			stage("Rubocop"){
+				steps {
+					githubNotify()
+					sh "/opt/chef/embedded/bin/rubocop"
+				}
+			}
+		}
+	post {
+		always {
+			script {
+				currentBuild.result = currentBuild.currentResult
+			}
+			githubNotify()
+		}
+	}
+}
+
+def githubNotify(){
+  def url = ''
+  if (env.GIT_URL.startsWith('http')){
+    url = "${env.GIT_URL}"
   }
-  triggers {
-    githubPush()
+  else {
+    tokens = env.GIT_URL.replaceAll('.git$', '').tokenize('@:')
+    url = "https://${tokens[1]}/${tokens[2]}"
   }
-  agent {
-    docker {
-      label "docker"
-      image "chef/chefdk:latest"
-      args "-e HOME=/tmp"
-    }
-  }
-  stages {
-    stage("Rubocop"){
-      steps {
-        githubNotify()
-        sh "chef exec rubocop"
-      }
-    }
-    stage("Foodcritic"){
-      steps {
-        sh "chef exec foodcritic ."
-      }
-    }
-  }
-  post {
-    always {
-      script {
-        currentBuild.result = currentBuild.currentResult
-      }
-      githubNotify()
-    }
-  }
+  step([$class: 'GitHubCommitStatusSetter',
+    commitShaSource: [$class: 'ManuallyEnteredShaSource', sha: "${env.GIT_COMMIT}"],
+    reposSource: [$class: 'ManuallyEnteredRepositorySource', url: "${url}"]])
 }

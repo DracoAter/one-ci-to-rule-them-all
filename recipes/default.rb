@@ -25,3 +25,9 @@ service 'jenkins' do
 	action %i[start enable]
 	supports status: true, restart: true, reload: true
 end
+
+
+
+# additional packages
+package 'git'
+
