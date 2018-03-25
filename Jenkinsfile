@@ -1,8 +1,6 @@
 // vim: set filetype=groovy:
 
 pipeline {
-	parameters {
-	}
 	options{
 		timestamps()
 		buildDiscarder(logRotator(numToKeepStr: '10'))
