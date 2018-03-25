@@ -26,8 +26,5 @@ service 'jenkins' do
 	supports status: true, restart: true, reload: true
 end
 
-
-
 # additional packages
 package 'git'
-
