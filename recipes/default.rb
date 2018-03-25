@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 file '/usr/sbin/policy-rc.d' do
-  mode '0755'
-  content("#!/bin/sh\nexit 101\n")
+	mode '0755'
+	content("#!/bin/sh\nexit 101\n")
 end
 
 apt_update
@@ -15,11 +17,11 @@ package 'jenkins'
 
 template '/etc/default/jenkins' do
 	source 'jenkins-default-config.erb'
-	mode 0644
+	mode 0o644
 	notifies :restart, 'service[jenkins]', :immediately
 end
 
 service 'jenkins' do
-	action [:start, :enable]
+	action %i[start enable]
 	supports status: true, restart: true, reload: true
 end

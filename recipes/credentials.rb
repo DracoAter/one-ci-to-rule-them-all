@@ -1,4 +1,6 @@
-jenkins_data = data_bag_item('jenkins2', "secrets")
+# frozen_string_literal: true
+
+jenkins_data = data_bag_item('jenkins2', 'secrets')
 
 return unless jenkins_data['credentials']
 

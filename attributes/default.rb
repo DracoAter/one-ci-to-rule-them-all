@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 default[:jenkins].tap do |j|
 	j[:repository] = 'http://pkg.jenkins-ci.org/debian-stable'
 	j[:repository_key] = 'http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key'
@@ -14,10 +16,10 @@ default[:jenkins].tap do |j|
 	j[:timezone] = 'Europe/Tallinn'
 
 	j[:java] = 'java'
-	j[:default_java_args] = "-Djenkins.install.runSetupWizard=false -Djava.awt.headless=true "\
-		"-Dhudson.matrix.MatrixConfiguration.useShortWorkspaceName=true "\
+	j[:default_java_args] = '-Djenkins.install.runSetupWizard=false -Djava.awt.headless=true '\
+		'-Dhudson.matrix.MatrixConfiguration.useShortWorkspaceName=true '\
 		"-Duser.timezone=#{j[:timezone]}"
 	j[:default_jenkins_args] = '--webroot=/var/cache/$NAME/war --httpPort=$HTTP_PORT '\
 		'--ajp13Port=$AJP_PORT'
-	j[:maxopenfiles] = 81920
+	j[:maxopenfiles] = 81_920
 end

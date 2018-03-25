@@ -78,7 +78,7 @@ Metrics/CyclomaticComplexity:
   Enabled: false
 
 Metrics/LineLength:
-  Max: 100
+  Enabled: false
 
 Metrics/MethodLength:
   Enabled: false

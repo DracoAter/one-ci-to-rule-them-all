@@ -16,10 +16,15 @@ pipeline {
     }
   }
   stages {
-    stage("Style Check"){
+    stage("Rubocop"){
       steps {
         githubNotify()
-        sh "chef exec "
+        sh "chef exec rubocop"
+      }
+    }
+    stage("Foodcritic"){
+      steps {
+        sh "chef exec foodcritic ."
       }
     }
   }
@@ -29,7 +34,6 @@ pipeline {
         currentBuild.result = currentBuild.currentResult
       }
       githubNotify()
-      slackNotifyDevops()
     }
   }
 }

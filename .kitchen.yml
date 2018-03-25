@@ -23,6 +23,10 @@ suites:
       - jenkins2::pipelines
       - jenkins2::security
     attributes:
+      plugins:
+        install:
+          - github
+          - timestamper
       jenkins2:
         folders:
           dev:

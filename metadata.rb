@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 name 'jenkins2'
 maintainer 'Juri Timošin'
 maintainer_email 'draco.ater@gmail.com'
