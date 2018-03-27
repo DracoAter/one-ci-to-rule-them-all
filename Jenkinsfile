@@ -9,14 +9,14 @@ pipeline {
 		githubPush()
 	}
 	agent any
-		stages {
-			stage("Rubocop"){
-				steps {
-					githubNotify()
-					sh "/opt/chef/embedded/bin/rubocop"
-				}
+	stages {
+		stage("Rubocop"){
+			steps {
+				githubNotify()
+				sh "/opt/chef/embedded/bin/rubocop"
 			}
 		}
+	}
 	post {
 		always {
 			script {
