@@ -26,6 +26,9 @@ suites:
       jenkins2:
         plugins:
           install:
+            - cloudbees-folder
+            - role-strategy
+            - workflow-aggregator
             - github
             - timestamper
         folders:
@@ -77,7 +80,7 @@ suites:
               - hudson.model.Run.Delete
               - hudson.model.Run.Update
               - hudson.scm.SCM.Tag
-            pattern: 'dev(?!/dev1)/.*'
+            pattern: 'dev(?!/dev1).*'
             users:
               - junior_dev
               - middle_dev
@@ -94,7 +97,7 @@ suites:
               - hudson.model.Run.Delete
               - hudson.model.Run.Update
               - hudson.scm.SCM.Tag
-            pattern: 'dev/dev1(?!/dev2)/.*'
+            pattern: 'dev/dev1(?!/dev2).*'
             users:
               - middle_dev
               - senior_dev
@@ -110,6 +113,6 @@ suites:
               - hudson.model.Run.Delete
               - hudson.model.Run.Update
               - hudson.scm.SCM.Tag
-            pattern: 'dev/dev1/dev2/.*'
+            pattern: 'dev/dev1/dev2.*'
             users:
               - senior_dev
