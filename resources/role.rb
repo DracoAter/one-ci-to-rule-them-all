@@ -21,7 +21,7 @@ action_class do
 
   def do_unassign(users)
     users.each do |user|
-      jc.roles.assign(role: name, type: type, rsuser: user)
+      jc.roles.unassign(role: name, type: type, rsuser: user)
     end
   end
 end
