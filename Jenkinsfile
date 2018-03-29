@@ -7,6 +7,11 @@ pipeline {
 	}
 	triggers {
 		githubPush()
+		pollSCM('H */4 * * 1-5')
+	}
+	environment {
+		SECRET = credentrials('github_api')
+		CI = true
 	}
 	agent any
 	stages {

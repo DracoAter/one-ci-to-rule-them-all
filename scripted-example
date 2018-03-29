@@ -6,7 +6,6 @@
    */
 
 node('docker') {
-
   try {
     // using the Timestamper plugin we can add timestamps to the console log
     timestamps {
@@ -31,8 +30,9 @@ node('docker') {
         parallel first: {
           // run Sonar Scan and Integration tests in parallel.
           stage ('Integration Test') {
-            checkout scm
-            echo 'Run integration tests here...'
+            node {
+              echo 'Run integration tests here...'
+            }
           }
         }, second: {
           stage('Sonar Scan') {
