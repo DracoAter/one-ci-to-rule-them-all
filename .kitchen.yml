@@ -19,9 +19,9 @@ suites:
   - name: default
     run_list:
       - jenkins2::plugins
-#      - jenkins2::credentials
-#      - jenkins2::pipelines
-#      - jenkins2::security
+      - jenkins2::credentials
+      - jenkins2::pipelines
+      - jenkins2::security
     attributes:
       jenkins2:
         plugins:
@@ -49,6 +49,8 @@ suites:
           dev/dev1-in-dev:
             repository_url: 'test'
           dev/random-in-dev:
+            repository_url: 'test'
+          dev/dev1/dev2/deeply-nested-job:
             repository_url: 'test'
         role_strategy:
           admin:
