@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'jenkins2'
 require 'rexml/document'
 
@@ -25,7 +27,7 @@ plugin="workflow-cps@2.45">
 </branches><doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
 <submoduleCfg class="list"/><extensions/></scm><scriptPath>%<script_path>s</scriptPath>
 <lightweight>true</lightweight></definition><triggers/><disabled>false</disabled>
-</flow-definition>'.freeze
+</flow-definition>'
 
 MULTIBRANCH_PIPELINE_XML = '<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject plugin="workflow-multibranch@2.17">
 <sources class="jenkins.branch.MultiBranchProject$BranchSourceList" plugin="branch-api@2.0.18">
@@ -40,62 +42,62 @@ MULTIBRANCH_PIPELINE_XML = '<org.jenkinsci.plugins.workflow.multibranch.Workflow
 </sources><factory class="org.jenkinsci.plugins.workflow.multibranch.WorkflowBranchProjectFactory">
 <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
 <scriptPath>%<script_path>s</scriptPath></factory>
-</org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>'.freeze
+</org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>'
 
 action_class do
-  def template
-    multibranch ? MULTIBRANCH_PIPELINE_XML : PIPELINE_XML
-  end
+	def template
+		multibranch ? MULTIBRANCH_PIPELINE_XML : PIPELINE_XML
+	end
 
-  def do_delete
-    job_proxy.delete
-  end
+	def do_delete
+		job_proxy.delete
+	end
 
-  def do_create(method_name)
-    job_proxy.__send__(method_name, format(template, to_hash))
-  end
+	def do_create(method_name)
+		job_proxy.__send__(method_name, format(template, to_hash))
+	end
 end
 
 load_current_value do
-  ensure_listening
-  begin
-    xml_root = REXML::Document.new(job_proxy.config_xml).root
-    multibranch xml_root.name.include? 'multibranch'
-    if multibranch
-      repository_url xml_root.text('//source/remote').to_s
-      script_path xml_root.text('//scriptPath').to_s
-      credentials_id xml_root.text('//source/credentialsId').to_s
-    else
-      repository_url xml_root.text('//url').to_s
-      script_path xml_root.text('//scriptPath').to_s
-      credentials_id xml_root.text('//credentialsId').to_s
-    end
-  rescue Jenkins2::NotFoundError
-    current_value_does_not_exist!
-  end
+	ensure_listening
+	begin
+		xml_root = REXML::Document.new(job_proxy.config_xml).root
+		multibranch xml_root.name.include? 'multibranch'
+		if multibranch
+			repository_url xml_root.text('//source/remote').to_s
+			script_path xml_root.text('//scriptPath').to_s
+			credentials_id xml_root.text('//source/credentialsId').to_s
+		else
+			repository_url xml_root.text('//url').to_s
+			script_path xml_root.text('//scriptPath').to_s
+			credentials_id xml_root.text('//credentialsId').to_s
+		end
+	rescue Jenkins2::NotFoundError
+		current_value_does_not_exist!
+	end
 end
 
 action :create do
-  if current_value && current_value.multibranch != new_resource.multibranch
-    converge_by("delete/create #{new_resource.identity}") do
-      do_delete
-      do_create(:create)
-    end
-  else
-    converge_if_changed do
-      do_create(current_value ? :update : :create)
-    end
-  end
+	if current_value && current_value.multibranch != new_resource.multibranch
+		converge_by("delete/create #{new_resource.identity}") do
+			do_delete
+			do_create(:create)
+		end
+	else
+		converge_if_changed do
+			do_create(current_value ? :update : :create)
+		end
+	end
 end
 
 action :delete do
-  if current_value
-    converge_by("delete #{new_resource.identity}") do
-      do_delete
-    end
-  end
+	if current_value
+		converge_by("delete #{new_resource.identity}") do
+			do_delete
+		end
+	end
 end
 
 def job_proxy
-  @job_proxy ||= path.split('/').inject(jc) { |acc, elem| acc.job(elem) }
+	@job_proxy ||= path.split('/').inject(jc){|acc, elem| acc.job(elem) }
 end
