@@ -1,5 +1,10 @@
 // vim: set filetype=groovy:
 
+library identifier: 'one-ci-to-rule-them-all@master',
+  retriever: modernSCM([$class: 'GitSCMSource',
+    remote: 'https://github.com/DracoAter/one-ci-to-rule-them-all.git',
+    traits: [[$class: 'BranchDiscoveryTrait'], [$class: 'TagDiscoveryTrait']]])
+
 pipeline {
 	options{
 		timestamps()
@@ -27,16 +32,3 @@ pipeline {
 	}
 }
 
-def githubNotify(){
-  def url = ''
-  if (env.GIT_URL.startsWith('http')){
-    url = "${env.GIT_URL}"
-  }
-  else {
-    tokens = env.GIT_URL.replaceAll('.git$', '').tokenize('@:')
-    url = "https://${tokens[1]}/${tokens[2]}"
-  }
-  step([$class: 'GitHubCommitStatusSetter',
-    commitShaSource: [$class: 'ManuallyEnteredShaSource', sha: "${env.GIT_COMMIT}"],
-    reposSource: [$class: 'ManuallyEnteredRepositorySource', url: "${url}"]])
-}
