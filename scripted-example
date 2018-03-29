@@ -27,15 +27,15 @@ node('docker') {
       }
 
       stage('Quality Analysis') {
-        parallel first: {
+        parallel(
+          first: {
+          //Cannot define stages inside parallel here
           // run Sonar Scan and Integration tests in parallel.
-          stage ('Integration Test') {
             node {
               echo 'Run integration tests here...'
             }
-          }
-        }, second: {
-          stage('Sonar Scan') {
+          },
+          second: {
             docker.image("maven:3.5.0-jdk-8").inside {
               checkout scm
               withCredentials([usernamePassword(credentialsId: 'sonar', passwordVariable: 'SONAR_PSW')]) {
@@ -43,8 +43,7 @@ node('docker') {
               }
             }
           }
-        },
-        failFast: true
+        )
       }
 
       stage('Build and Publish Image') {
