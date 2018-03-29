@@ -10,7 +10,7 @@ pipeline {
 		pollSCM('H */4 * * 1-5')
 	}
 	environment {
-		SECRET = credentrials('github_api')
+		SECRET = credentials('github_api')
 		CI = true
 	}
 	agent any
