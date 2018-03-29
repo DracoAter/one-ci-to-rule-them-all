@@ -12,6 +12,8 @@ property :executors, Integer
 property :credentials_id, String
 property :labels, Array, default: [], coerce: proc{|m| m.sort }
 property :port, Integer, default: 22
+property :connection, Hash, desired_state: false,
+	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
 
 include JenkinsHelper
 

@@ -7,6 +7,8 @@ property :pattern, String
 property :users, Array, default: [], coerce: proc { |m| m.sort }
 
 property :type, %w(globalRoles projectRoles slaveRoles), default: 'globalRoles', desired_state: false
+property :connection, Hash, desired_state: false,
+	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
 
 include JenkinsHelper
 

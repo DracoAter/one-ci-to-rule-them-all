@@ -3,6 +3,8 @@ require 'jenkins2'
 resource_name :jenkins2_folder
 
 property :path, String, name_property: true, identity: true
+property :connection, Hash, desired_state: false,
+	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
 
 include JenkinsHelper
 

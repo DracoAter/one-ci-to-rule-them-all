@@ -8,6 +8,8 @@ property :repository_url, String
 property :script_path, String, default: 'Jenkinsfile'
 property :credentials_id, String
 property :multibranch, [true, false], default: false
+property :connection, Hash, desired_state: false,
+	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
 
 include JenkinsHelper
 

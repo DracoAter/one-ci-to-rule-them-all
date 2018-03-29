@@ -26,6 +26,9 @@ property :domain, String, default: '_', desired_state: false
 property :connection, Hash, desired_state: false,
 	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
 
+property :connection, Hash, desired_state: false,
+	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
+
 include JenkinsHelper
 
 declare_action_class.class_eval do
