@@ -19,9 +19,9 @@ suites:
   - name: default
     run_list:
       - jenkins2::plugins
-      - jenkins2::credentials
-      - jenkins2::pipelines
-      - jenkins2::security
+#      - jenkins2::credentials
+#      - jenkins2::pipelines
+#      - jenkins2::security
     attributes:
       jenkins2:
         plugins:
@@ -31,15 +31,13 @@ suites:
             - workflow-aggregator
             - github
             - timestamper
+            - blueocean
+            #- convert-to-pipeline
         folders:
-          dev:
-            path: ''
-          dev1:
-            path: 'dev'
-          dev2:
-            path: 'dev/dev1'
-          ops:
-            path: ''
+          - dev
+          - dev/dev1
+          - dev/dev1/dev2
+          - ops
         pipelines:
           one-ci-to-rule-them-all:
             repository_url: 'https://github.com/DracoAter/one-ci-to-rule-them-all.git'
@@ -48,12 +46,10 @@ suites:
             repository_url: 'test'
           ops-global:
             repository_url: 'test'
-          dev1-in-dev:
+          dev/dev1-in-dev:
             repository_url: 'test'
-            path: 'dev'
-          random-in-dev:
+          dev/random-in-dev:
             repository_url: 'test'
-            path: 'dev'
         role_strategy:
           admin:
             type: 'globalRoles'

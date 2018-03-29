@@ -1,18 +1,13 @@
-# frozen_string_literal: true
-
 require 'jenkins2'
 require 'rexml/document'
 
 resource_name :jenkins2_pipeline
 
-property :repository_url, String, required: true
-property :script, String, default: 'Jenkinsfile', required: true
+property :path, String, name_property: true, identity: true
+property :repository_url, String
+property :script_path, String, default: 'Jenkinsfile'
 property :credentials_id, String
 property :multibranch, [true, false], default: false
-
-property :path, String, desired_state: false, default: ''
-property :connection, Hash, desired_state: false,
-	default: { server: 'http://localhost:8080', user: 'admin', key: 'admin' }
 
 include JenkinsHelper
 
@@ -26,9 +21,9 @@ plugin="workflow-cps@2.45">
 </hudson.plugins.git.UserRemoteConfig></userRemoteConfigs><branches>
 <hudson.plugins.git.BranchSpec><name>*/master</name></hudson.plugins.git.BranchSpec>
 </branches><doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-<submoduleCfg class="list"/><extensions/></scm><scriptPath>%<script>s</scriptPath>
+<submoduleCfg class="list"/><extensions/></scm><scriptPath>%<script_path>s</scriptPath>
 <lightweight>true</lightweight></definition><triggers/><disabled>false</disabled>
-</flow-definition>'
+</flow-definition>'.freeze
 
 MULTIBRANCH_PIPELINE_XML = '<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject plugin="workflow-multibranch@2.17">
 <sources class="jenkins.branch.MultiBranchProject$BranchSourceList" plugin="branch-api@2.0.18">
@@ -42,76 +37,63 @@ MULTIBRANCH_PIPELINE_XML = '<org.jenkinsci.plugins.workflow.multibranch.Workflow
 <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
 </sources><factory class="org.jenkinsci.plugins.workflow.multibranch.WorkflowBranchProjectFactory">
 <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
-<scriptPath>%<script>s</scriptPath></factory>
-</org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>'
+<scriptPath>%<script_path>s</scriptPath></factory>
+</org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>'.freeze
+
+action_class do
+  def template
+    multibranch ? MULTIBRANCH_PIPELINE_XML : PIPELINE_XML
+  end
+
+  def do_delete
+    job_proxy.delete
+  end
+
+  def do_create(method_name)
+    job_proxy.__send__(method_name, format(template, to_hash))
+  end
+end
 
 load_current_value do
-	ensure_listening
-	begin
-		xml_root = REXML::Document.new(
-			path.split('/').inject(jc){|acc, elem| acc.job(elem) }.job(name).config_xml
-		).root
-		multibranch xml_root.name.include? 'multibranch'
-		if multibranch
-			repository_url xml_root.text('//source/remote').to_s
-			script xml_root.text('//scriptPath')
-			credentials_id xml_root.text('//source/credentialsId')
-		else
-			repository_url xml_root.text('//url')
-			script xml_root.text('//scriptPath')
-			credentials_id xml_root.text('//credentialsId')
-		end
-	rescue Jenkins2::NotFoundError
-		current_value_does_not_exist!
-	end
+  ensure_listening
+  begin
+    xml_root = REXML::Document.new(job_proxy.config_xml).root
+    multibranch xml_root.name.include? 'multibranch'
+    if multibranch
+      repository_url xml_root.text('//source/remote').to_s
+      script_path xml_root.text('//scriptPath').to_s
+      credentials_id xml_root.text('//source/credentialsId').to_s
+    else
+      repository_url xml_root.text('//url').to_s
+      script_path xml_root.text('//scriptPath').to_s
+      credentials_id xml_root.text('//credentialsId').to_s
+    end
+  rescue Jenkins2::NotFoundError
+    current_value_does_not_exist!
+  end
 end
 
 action :create do
-	if current_value
-		Chef::Log.debug "#{new_resource} No need to create. Pipeline already exists."
-		run_action :update
-	else
-		converge_by("Create Jenkins Pipeline #{new_resource.name}") do
-			Chef::Log.info "#{new_resource}: Creating Pipeline."
-			new_resource.path.split('/').inject(jc) do |acc, elem|
-				acc.job(elem)
-			end.job(new_resource.name).create(format(new_resource.template, new_resource.to_hash))
-		end
-	end
-end
-
-action :update do
-	if current_value
-		converge_if_changed :multibranch do
-			run_action :delete
-			run_action :create
-		end
-		converge_if_changed do
-			converge_by("Update jenkins pipeline #{new_resource.name}") do
-				Chef::Log.info "#{new_resource}: Updating pipeline."
-				new_resource.path.split('/').inject(jc) do |acc, elem|
-					acc.job(elem)
-				end.job(new_resource.name).update(format(new_resource.template, new_resource.to_hash))
-			end
-		end
-	else
-		Chef::Log.debug "#{new_resource} Pipeline does not exist. Nothing to update."
-	end
+  if current_value && current_value.multibranch != new_resource.multibranch
+    converge_by("delete/create #{new_resource.identity}") do
+      do_delete
+      do_create(:create)
+    end
+  else
+    converge_if_changed do
+      do_create(current_value ? :update : :create)
+    end
+  end
 end
 
 action :delete do
-	if folder_exist?
-		converge_by("Delete Jenkins Pipeline #{new_resource.name}") do
-			Chef::Log.info "#{new_resource}: Deleting Pipeline."
-			new_resource.path.split('/').inject(jc) do |acc, elem|
-				acc.job(elem)
-			end.job(new_resource.name).delete
-		end
-	else
-		Chef::Log.debug "#{new_resource} No need to delete. Pipeline does not exist."
-	end
+  if current_value
+    converge_by("delete #{new_resource.identity}") do
+      do_delete
+    end
+  end
 end
 
-def template
-	multibranch ? MULTIBRANCH_PIPELINE_XML : PIPELINE_XML
+def job_proxy
+  @job_proxy ||= path.split('/').inject(jc) { |acc, elem| acc.job(elem) }
 end
