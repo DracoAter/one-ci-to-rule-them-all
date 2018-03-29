@@ -3,7 +3,8 @@
 library identifier: 'one-ci-to-rule-them-all@master',
   retriever: modernSCM([$class: 'GitSCMSource',
     remote: 'https://github.com/DracoAter/one-ci-to-rule-them-all.git',
-    traits: [[$class: 'BranchDiscoveryTrait'], [$class: 'TagDiscoveryTrait']]])
+    traits: [[$class: 'org.jenkinsci.plugins.github_branch_source.BranchDiscoveryTrait'],
+			$class: 'TagDiscoveryTrait']]])
 
 pipeline {
 	options{
