@@ -1,0 +1,74 @@
+// vim: set filetype=groovy:
+
+  /*
+   * Run everything on an existing agent configured with a label 'docker'.
+   * This agent will need docker, git and a jdk installed at a minimum.
+   */
+
+node('docker') {
+
+  try {
+    // using the Timestamper plugin we can add timestamps to the console log
+    timestamps {
+
+      stage('Build') {
+        //Use Pipeline Utility Steps plugin to read information from pom.xml into env variables
+        withEnv(['IMAGE = readMavenPom().getArtifactId()', 'VERSION = readMavenPom().getVersion()']) {
+          docker.image("maven:3.5.0-jdk-8").inside {
+            // Need to checkout scm every time we run on a different node
+            checkout scm
+            // using the Pipeline Maven plugin we can set maven configuration settings, publish test results, and annotate the Jenkins console
+            withMaven(options: [findbugsPublisher(), junitPublisher(ignoreAttachments: false)]) {
+              sh 'mvn clean findbugs:findbugs package'
+            }
+            // we only worry about archiving the jar file if the build steps are successful
+            archiveArtifacts(artifacts: '**/target/*.jar', allowEmptyArchive: true)
+          }
+        }
+      }
+
+      stage('Quality Analysis') {
+        parallel first: {
+          // run Sonar Scan and Integration tests in parallel.
+          stage ('Integration Test') {
+            checkout scm
+            echo 'Run integration tests here...'
+          }
+        }, second: {
+          stage('Sonar Scan') {
+            docker.image("maven:3.5.0-jdk-8").inside {
+              checkout scm
+              withCredentials([usernamePassword(credentialsId: 'sonar', passwordVariable: 'SONAR_PSW')]) {
+                sh 'mvn sonar:sonar -Dsonar.login=$SONAR_PSW'
+              }
+            }
+          }
+        },
+        failFast: true
+      }
+
+      stage('Build and Publish Image') {
+        //only run these steps on the master branch
+        if (scm.branch == 'master'){
+          /*
+           * Multiline strings can be used for larger scripts. It is also possible to put scripts in your shared library
+           * and load them with 'libaryResource'
+           */
+          sh """
+            docker build -t ${IMAGE} .
+            docker tag ${IMAGE} ${IMAGE}:${VERSION}
+            docker push ${IMAGE}:${VERSION}
+          """
+        }
+      }
+    }
+  }
+  catch(err) {
+    // notify users when the Pipeline fails
+    mail to: 'team@example.com',
+        subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+        body: "Something is wrong with ${env.BUILD_URL}"
+
+    throw err
+  }
+}
