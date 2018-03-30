@@ -32,7 +32,7 @@ suites:
             - github
             - timestamper
             - blueocean
-            #- convert-to-pipeline
+            - convert-to-pipeline
         folders:
           - dev
           - dev/dev1
